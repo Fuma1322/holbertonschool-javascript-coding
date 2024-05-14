@@ -1,5 +1,1 @@
-ES6_promise`:wq
-A
-A
-
-i
+**ES6_promise**
