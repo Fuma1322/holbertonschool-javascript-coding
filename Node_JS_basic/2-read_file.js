@@ -1,39 +1,35 @@
-
 const fs = require('fs');
 
 function countStudents(path) {
-  if (!fs.existsSync(path)) {
-    throw new Error('Cannot load the database');
-  }
-  const data = fs.readFileSync(path, 'utf8').split('\n');
-  if (data.length === 0) {
-    throw new Error('Cannot load the database');
-  }
+  try {
+    const data = fs.readFileSync(path, 'utf8');
+    const lines = data.split('\n').filter((line) => line.trim() !== '');
 
-  const students = data.map((line) => line.split(','));
-  console.log(`Number of students: ${students.slice(1).length - 1}`);
+    const counters = {};
 
-  const fields = students[0];
-  const fieldIndex = fields.indexOf('field');
+    for (let i = 1; i < lines.length; i += 1) {
+      const line = lines[i];
+      const [firstName, , , field] = line.split(',');
 
-  if (fieldIndex === -1) {
-    throw new Error('Field column not found');
-  }
-  const validStudents = students
-    .slice(1)
-    .filter((student) => student[fieldIndex] !== undefined && student[fieldIndex] !== '');
-
-  const classes = validStudents.reduce((acc, student) => {
-    const className = student[fieldIndex];
-    if (!acc[className]) {
-      acc[className] = [];
+      if (field) {
+        counters[field] = counters[field] || { count: 0, names: [] };
+        counters[field].count += 1;
+        counters[field].names.push(firstName.trim());
+      }
     }
-    acc[className].push(student[fields.indexOf('firstname')]);
-    return acc;
-  }, {});
 
-  for (const [className, studentList] of Object.entries(classes)) {
-    console.log(`Number of students in ${className}: ${studentList.length}. List: ${studentList.join(', ')}`);
+    console.log(`Number of students: ${lines.length - 1}`);
+    for (const field in counters) {
+      if (Object.prototype.hasOwnProperty.call(counters, field)) {
+        console.log(
+          `Number of students in ${field}: ${
+            counters[field].count
+          }. List: ${counters[field].names.join(', ')}`,
+        );
+      }
+    }
+  } catch (error) {
+    throw new Error('Cannot load the database');
   }
 }
 
